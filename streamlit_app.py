@@ -32,7 +32,7 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-st.title("AI Pitch Deck Generator (Streamlit Interface)")
+st.title("AI Pitch Deck Generator")
 
 st.markdown("### Enter Startup Details")
 
