@@ -73,7 +73,7 @@ with st.form("pitch_deck_form"):
                 try:
                     # Add timeout to prevent hanging
                     response = requests.post(
-                        f"{FLASK_API_BASE_URL}/generate-full-deck",
+                        f"{FLASK_API_BASE_URL}/api/generate-full-deck",
                         json=form_data,
                         timeout=30
                     )
@@ -117,7 +117,7 @@ if 'deck' in st.session_state and st.session_state['deck']:
         if st.button(f"Regenerate {section['label']}", key=f"regen_{section['key']}"):
             with st.spinner(f"Regenerating {section['label']}..."):
                 try:
-                    response = requests.post(f"{FLASK_API_BASE_URL}/generate-slide", json={
+                    response = requests.post(f"{FLASK_API_BASE_URL}/api/generate-slide", json={
                         "section": section['key'],
                         "context": form_data
                     })
@@ -154,7 +154,7 @@ if 'deck' in st.session_state and st.session_state['deck']:
             with st.spinner("Generating PowerPoint..."):
                 try:
                     ppt_response = requests.post(
-                        f"{FLASK_API_BASE_URL}/generate-ppt",
+                        f"{FLASK_API_BASE_URL}/api/generate-ppt",
                         json={
                             "formData": form_data,
                             "deck": deck
