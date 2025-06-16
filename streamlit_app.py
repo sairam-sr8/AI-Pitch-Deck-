@@ -2,11 +2,35 @@ import streamlit as st
 import requests
 import json
 import base64
+import os
+from dotenv import load_dotenv
 
-# IMPORTANT: Replace with your deployed Flask API URL
-FLASK_API_BASE_URL = "YOUR_DEPLOYED_FLASK_API_URL"
+# Load environment variables
+load_dotenv()
 
-st.set_page_config(layout="wide")
+# Get Flask API URL from environment variable or use a default
+FLASK_API_BASE_URL = os.getenv('FLASK_API_URL', 'http://localhost:5000')
+
+# Configure Streamlit page
+st.set_page_config(
+    page_title="AI Pitch Deck Generator",
+    page_icon="🎯",
+    layout="wide",
+    initial_sidebar_state="expanded"
+)
+
+# Add custom CSS for better styling
+st.markdown("""
+    <style>
+    .stButton>button {
+        width: 100%;
+        margin-top: 10px;
+    }
+    .stTextArea>div>div>textarea {
+        font-size: 16px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
 st.title("AI Pitch Deck Generator (Streamlit Interface)")
 
@@ -47,17 +71,26 @@ with st.form("pitch_deck_form"):
         else:
             with st.spinner("Generating pitch deck..."):
                 try:
-                    response = requests.post(f"{FLASK_API_BASE_URL}/generate-full-deck", json=form_data)
-                    response.raise_for_status() # Raise HTTPError for bad responses (4xx or 5xx)
+                    # Add timeout to prevent hanging
+                    response = requests.post(
+                        f"{FLASK_API_BASE_URL}/generate-full-deck",
+                        json=form_data,
+                        timeout=30
+                    )
+                    response.raise_for_status()
                     deck_data = response.json()
                     st.session_state['deck'] = deck_data
                     st.success("Pitch deck generated successfully!")
+                except requests.exceptions.ConnectionError:
+                    st.error(f"Could not connect to the backend server at {FLASK_API_BASE_URL}. Please ensure the Flask backend is running.")
+                except requests.exceptions.Timeout:
+                    st.error("Request timed out. The server took too long to respond.")
                 except requests.exceptions.RequestException as e:
-                    st.error(f"Error generating pitch deck: {e}")
+                    st.error(f"Error generating pitch deck: {str(e)}")
                 except json.JSONDecodeError:
-                    st.error("Failed to parse JSON response from backend. Is the backend running and returning valid JSON?")
+                    st.error("Failed to parse response from backend. Please check the server logs.")
                 except Exception as e:
-                    st.error(f"An unexpected error occurred: {e}")
+                    st.error(f"An unexpected error occurred: {str(e)}")
 
 if 'deck' in st.session_state and st.session_state['deck']:
     st.markdown("---विकास")
@@ -120,26 +153,37 @@ if 'deck' in st.session_state and st.session_state['deck']:
         else:
             with st.spinner("Generating PowerPoint..."):
                 try:
-                    ppt_response = requests.post(f"{FLASK_API_BASE_URL}/generate-ppt", json={
-                        "formData": form_data,
-                        "deck": deck
-                    })
+                    ppt_response = requests.post(
+                        f"{FLASK_API_BASE_URL}/generate-ppt",
+                        json={
+                            "formData": form_data,
+                            "deck": deck
+                        },
+                        timeout=60  # Longer timeout for PPT generation
+                    )
                     ppt_response.raise_for_status()
                     
-                    ppt_bytes = ppt_response.content
-                    st.download_button(
-                        label="Click here to download PPTX",
-                        data=ppt_bytes,
-                        file_name=f"{form_data['startup_name'].replace(' ', '_')}_pitch_deck.pptx",
-                        mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
-                        key="download_ppt_button",
-                        help="Download the generated pitch deck as a PowerPoint file."
-                    )
-                    st.success("PowerPoint generated successfully!")
+                    if ppt_response.headers.get('content-type') == 'application/vnd.openxmlformats-officedocument.presentationml.presentation':
+                        ppt_bytes = ppt_response.content
+                        st.download_button(
+                            label="Click here to download PPTX",
+                            data=ppt_bytes,
+                            file_name=f"{form_data['startup_name'].replace(' ', '_')}_pitch_deck.pptx",
+                            mime="application/vnd.openxmlformats-officedocument.presentationml.presentation",
+                            key="download_ppt_button",
+                            help="Download the generated pitch deck as a PowerPoint file."
+                        )
+                        st.success("PowerPoint generated successfully!")
+                    else:
+                        st.error("Received invalid response format from server.")
+                except requests.exceptions.ConnectionError:
+                    st.error(f"Could not connect to the backend server at {FLASK_API_BASE_URL}. Please ensure the Flask backend is running.")
+                except requests.exceptions.Timeout:
+                    st.error("Request timed out. The server took too long to generate the PowerPoint.")
                 except requests.exceptions.RequestException as e:
-                    st.error(f"Error generating PowerPoint: {e}")
+                    st.error(f"Error generating PowerPoint: {str(e)}")
                 except Exception as e:
-                    st.error(f"An unexpected error occurred during PowerPoint generation: {e}")
+                    st.error(f"An unexpected error occurred during PowerPoint generation: {str(e)}")
 
     # Back to Input Form
     if st.button("Back to Input Form"):
