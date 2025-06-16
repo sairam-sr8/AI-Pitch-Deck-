@@ -136,8 +136,18 @@ if 'deck' in st.session_state and st.session_state['deck']:
 
     st.subheader("Export Options")
     
-    # Download JSON
-    json_export = json.dumps(deck, indent=2)
+    # New structure for JSON export
+    export_slides = []
+    for section_info in SLIDE_SECTIONS:
+        key = section_info['key']
+        label = section_info['label']
+        content = deck.get(key, 'No content generated for this section yet.')
+        export_slides.append({
+            'slide_title': label,
+            'slide_content': content
+        })
+
+    json_export = json.dumps(export_slides, indent=2)
     st.download_button(
         label="Download JSON",
         data=json_export,
