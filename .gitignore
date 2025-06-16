@@ -2,7 +2,6 @@
 __pycache__/
 *.pyc
 virt
-virtualenv/
 venv/
 .python-version
 
@@ -18,6 +17,10 @@ build/
 # IDE-specific files
 .idea/
 .vscode/
+.devcontainer/
+
+# Generated files
+generated_decks/
 
 # MacOS
 .DS_Store
