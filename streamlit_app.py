@@ -9,7 +9,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Get Flask API URL from environment variable or use a default
-FLASK_API_BASE_URL = os.getenv('FLASK_API_URL', 'http://localhost:5000')
+FLASK_API_BASE_URL = os.getenv('FLASK_API_URL', 'https://ai-pitch-deck.onrender.com')
 
 # Configure Streamlit page
 st.set_page_config(
