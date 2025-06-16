@@ -13,7 +13,9 @@ app = Flask(__name__)
 CORS(app)
 
 # Gemini API configuration
-GEMINI_API_KEY = "AIzaSyAgqvT58CtTB_iUbZp4g_NYgCOCv7NxIjc"
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    raise ValueError("GEMINI_API_KEY environment variable not set. Please set it in your .env file or environment variables.")
 GEMINI_API_URL = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={GEMINI_API_KEY}"
 
 # Define slide sections in order
