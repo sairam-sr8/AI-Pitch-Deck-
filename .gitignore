@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.pyc
+virt
+virtualenv/
+venv/
+.python-version
+
+# Frontend
+node_modules/
+build/
+.env.local
+.env.*
+
+# Environment variables
+.env
+
+# IDE-specific files
+.idea/
+.vscode/
+
+# MacOS
+.DS_Store
+
+# Logs
+*.log
+
+# OS generated files
+Thumbs.db 
